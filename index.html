@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מחשבון תמחור ייעוץ בינה מלאכותית</title>
+    <style>
+        :root {
+            --primary: #7209b7;
+            --primary-light: #9d4edd;
+            --secondary: #3a0ca3;
+            --accent: #4cc9f0;
+            --light-accent: #f72585;
+            --success: #2ecc71;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 16px;
+            --card-radius: 20px;
+            --input-radius: 12px;
+            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 8px 30px rgba(114, 9, 183, 0.12);
+            --shadow-lg: 0 15px 50px rgba(114, 9, 183, 0.2);
+            --shadow-input: 0 2px 6px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f6f8fc;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 70% 10%, rgba(114, 9, 183, 0.1), transparent 45%),
+                        radial-gradient(circle at 20% 30%, rgba(247, 37, 133, 0.07), transparent 35%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 3rem 1rem 6rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%);
+            z-index: 0;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23f6f8fc' fill-opacity='1' d='M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,250.7C960,235,1056,181,1152,165.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+            background-size: cover;
+            z-index: 1;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        header p {
+            margin-top: 0.5rem;
+            opacity: 0.9;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        main {
+            max-width: 1000px;
+            width: 92%;
+            margin: -4rem auto 3rem;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+
+        .calculator-container {
+            background-color: white;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .calculator-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            border-radius: var(--card-radius);
+            box-shadow: 0 0 0 2px rgba(114, 9, 183, 0.1);
+            pointer-events: none;
+        }
+
+        .card-header {
+            padding: 2rem;
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 50%;
+            transform: translateX(50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+            border-radius: 3px;
+        }
+
+        .card-header h2 {
+            font-size: 1.6rem;
+            color: var(--primary);
+            margin: 0;
+            text-align: center;
+        }
+
+        .card-body {
+            padding: 2.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid #eaedf2;
+            border-radius: var(--input-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+            background-color: white;
+            color: var(--dark);
+            -webkit-appearance: none;
+            appearance: none;
+            box-shadow: var(--shadow-input);
+            direction: rtl;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 1rem center;
+            background-size: 1rem;
+            padding-left: 2.5rem;
+        }
+
+        select:hover, input:hover {
+            border-color: #d0d4db;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(114, 9, 183, 0.15);
+        }
+
+        input:invalid:not(:placeholder-shown) {
+            border-color: #e74c3c;
+        }
+
+        .results {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            padding: 2.5rem;
+            margin-top: 2rem;
+            position: relative;
+            transition: var(--transition);
+            border: 1px solid rgba(114, 9, 183, 0.1);
+        }
+
+        .results::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(114, 9, 183, 0.05) 0%, rgba(247, 37, 133, 0.05) 100%);
+            border-radius: var(--border-radius);
+            z-index: -1;
+        }
+
+        .results.hidden {
+            opacity: 0;
+            transform: translateY(10px);
+            height: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .results h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            position: relative;
+            padding-bottom: 0.75rem;
+            text-align: center;
+        }
+
+        .results h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 50%;
+            transform: translateX(50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--light-accent));
+            border-radius: 3px;
+        }
+
+        .result-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: var(--input-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+
+        .result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .result-label {
+            font-size: 1rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-weight: 700;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, var(--primary), var(--light-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            height: 0;
+            transition: var(--transition);
+            overflow: hidden;
+            justify-content: flex-end;
+        }
+
+        .error-message::before {
+            content: "⚠️";
+            margin-left: 0.5rem;
+        }
+
+        .error-message.visible {
+            opacity: 1;
+            height: auto;
+            margin-top: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background-color: var(--dark);
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: auto;
+            position: relative;
+        }
+
+        .disclaimer {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            position: relative;
+            display: inline-block;
+            z-index: 1;
+        }
+
+        .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 30%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--primary-light), var(--light-accent));
+            opacity: 0.3;
+            z-index: -1;
+            border-radius: 4px;
+        }
+
+        /* Custom form styling */
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-icon {
+            position: absolute;
+            top: 50%;
+            right: 1.25rem;
+            transform: translateY(-50%);
+            width: 1.25rem;
+            height: 1.25rem;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .input-with-icon {
+            padding-right: 3rem;
+        }
+
+        /* Card effect for form groups on larger screens */
+        @media (min-width: 768px) {
+            .form-group {
+                background-color: white;
+                border-radius: var(--input-radius);
+                padding: 1.5rem;
+                box-shadow: var(--shadow-sm);
+                transition: var(--transition);
+                border: 1px solid rgba(0,0,0,0.03);
+            }
+
+            .form-group:hover {
+                box-shadow: var(--shadow-md);
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 2rem 1rem 5rem;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            main {
+                width: 95%;
+                margin-top: -3rem;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .results {
+                padding: 1.5rem;
+            }
+            
+            .result-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card-body {
+                padding: 1.25rem;
+            }
+
+            .card-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .results {
+                padding: 1.25rem;
+            }
+        }
+
+        /* Add animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .calculator-container {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(114, 9, 183, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(114, 9, 183, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(114, 9, 183, 0); }
+        }
+
+        /* Custom checkbox and radio styles for future use */
+        .custom-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 2px solid #eaedf2;
+            border-radius: var(--input-radius);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .custom-checkbox:hover {
+            border-color: #d0d4db;
+        }
+
+        .custom-checkbox.selected {
+            border-color: var(--primary);
+            background-color: rgba(114, 9, 183, 0.05);
+        }
+
+        /* Glassy effect for specific elements */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>מחשבון תמחור ייעוץ בינה מלאכותית</h1>
+        <p>הערכת תעריפים מדויקת לפרויקטים בתחום הבינה המלאכותית</p>
+    </header>
+
+    <main>
+        <div class="calculator-container">
+            <div class="card-header">
+                <h2>חשב את התעריף המומלץ לפרויקט</h2>
+            </div>
+            
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="market">מיקום הלקוח</label>
+                        <select id="market" required>
+                            <option value="" disabled selected>בחר מיקום</option>
+                            <option value="north-america">צפון אמריקה</option>
+                            <option value="europe">אירופה</option>
+                            <option value="asia">אסיה</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expertise">רמת מומחיות היועץ</label>
+                        <select id="expertise" required>
+                            <option value="" disabled selected>בחר רמת מומחיות</option>
+                            <option value="junior">מתחיל (0-2 שנים)</option>
+                            <option value="mid-level">בינוני (2-5 שנים)</option>
+                            <option value="senior">מנוסה (5+ שנים)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="service-type">סוג השירות</label>
+                        <select id="service-type" required>
+                            <option value="" disabled selected>בחר סוג שירות</option>
+                            <option value="strategy">ייעוץ אסטרטגי לבינה מלאכותית</option>
+                            <option value="implementation">יישום פתרונות למידת מכונה</option>
+                            <option value="nlp">עיבוד שפה טבעית (NLP)</option>
+                            <option value="vision">פתרונות ראייה ממוחשבת</option>
+                            <option value="integration">שילוב AI במערכות קיימות</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="complexity">מורכבות הפרויקט</label>
+                        <select id="complexity" required>
+                            <option value="" disabled selected>בחר רמת מורכבות</option>
+                            <option value="simple">פשוטה (יישום בסיסי)</option>
+                            <option value="medium">בינונית (פתרונות מותאמים)</option>
+                            <option value="complex">מורכבת (טכנולוגיה חדשנית)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hours">שעות עבודה משוערות</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="hours" min="1" placeholder="הכנס מספר שעות" required>
+                    </div>
+                    <div id="hours-error" class="error-message">נא להזין מספר שעות תקין</div>
+                </div>
+
+                <div id="results" class="results hidden">
+                    <h3>המלצת תמחור</h3>
+                    <div class="result-cards">
+                        <div class="result-card">
+                            <div class="result-label">תעריף שעתי מומלץ:</div>
+                            <div id="hourly-rate" class="result-value">$0.00</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">עלות כוללת לפרויקט:</div>
+                            <div id="project-fee" class="result-value">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="disclaimer">
+            הערה: אלו הערכות בלבד. התעריפים בפועל עשויים להשתנות בהתאם לגורמים שונים כגון דרישות הפרויקט, אילוצי זמן, ותנאי השוק.
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const marketSelect = document.getElementById('market');
+        const expertiseSelect = document.getElementById('expertise');
+        const serviceTypeSelect = document.getElementById('service-type');
+        const complexitySelect = document.getElementById('complexity');
+        const hoursInput = document.getElementById('hours');
+        const hoursError = document.getElementById('hours-error');
+        const resultsSection = document.getElementById('results');
+        const hourlyRateDisplay = document.getElementById('hourly-rate');
+        const projectFeeDisplay = document.getElementById('project-fee');
+
+        // Base rates by market and expertise level
+        const baseRates = {
+            'north-america': {
+                'junior': 100,
+                'mid-level': 150,
+                'senior': 200
+            },
+            'europe': {
+                'junior': 80,
+                'mid-level': 120,
+                'senior': 160
+            },
+            'asia': {
+                'junior': 50,
+                'mid-level': 75,
+                'senior': 100
+            }
+        };
+
+        // Service type multipliers
+        const serviceMultipliers = {
+            'strategy': 1.1,
+            'implementation': 1.0,
+            'nlp': 1.2,
+            'vision': 1.25,
+            'integration': 0.95
+        };
+
+        // Complexity multipliers
+        const complexityMultipliers = {
+            'simple': 1,
+            'medium': 1.2,
+            'complex': 1.5
+        };
+
+        // Format number as currency
+        function formatCurrency(number) {
+            return '$' + number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Check if all inputs are valid
+        function areInputsValid() {
+            return (
+                marketSelect.value !== '' &&
+                expertiseSelect.value !== '' &&
+                serviceTypeSelect.value !== '' &&
+                complexitySelect.value !== '' &&
+                hoursInput.value !== '' &&
+                !isNaN(hoursInput.value) &&
+                parseFloat(hoursInput.value) > 0
+            );
+        }
+
+        // Calculate pricing
+        function calculatePricing() {
+            // Reset error messages
+            hoursError.classList.remove('visible');
+            
+            // Validate inputs
+            if (!areInputsValid()) {
+                resultsSection.classList.add('hidden');
+                
+                // Show specific error for hours if needed
+                if (hoursInput.value === '' || isNaN(hoursInput.value) || parseFloat(hoursInput.value) <= 0) {
+                    hoursError.classList.add('visible');
+                }
+                
+                return;
+            }
+
+            // Get input values
+            const market = marketSelect.value;
+            const expertise = expertiseSelect.value;
+            const serviceType = serviceTypeSelect.value;
+            const complexity = complexitySelect.value;
+            const hours = parseFloat(hoursInput.value);
+
+            // Calculate rates
+            const baseRate = baseRates[market][expertise];
+            const serviceMultiplier = serviceMultipliers[serviceType];
+            const complexityMultiplier = complexityMultipliers[complexity];
+            const adjustedHourlyRate = baseRate * serviceMultiplier * complexityMultiplier;
+            const totalProjectFee = adjustedHourlyRate * hours;
+
+            // Display results
+            hourlyRateDisplay.textContent = formatCurrency(adjustedHourlyRate);
+            projectFeeDisplay.textContent = formatCurrency(totalProjectFee);
+            
+            // Show results with animation
+            resultsSection.classList.remove('hidden');
+            
+            // Add pulse animation to results and then remove it
+            resultsSection.classList.add('pulse');
+            setTimeout(() => {
+                resultsSection.classList.remove('pulse');
+            }, 2000);
+        }
+
+        // Event listeners
+        marketSelect.addEventListener('change', calculatePricing);
+        expertiseSelect.addEventListener('change', calculatePricing);
+        serviceTypeSelect.addEventListener('change', calculatePricing);
+        complexitySelect.addEventListener('change', calculatePricing);
+        hoursInput.addEventListener('input', calculatePricing);
+
+        // Initial calculation attempt
+        calculatePricing();
+    </script>
+</body>
+</html>
